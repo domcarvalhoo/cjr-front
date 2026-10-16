@@ -7,41 +7,46 @@ export default function Cadastro() {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
 
+    function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+        e.preventDefault();
+        console.log("Tudo certo, pronto para enviar");
+    }
+
     return (
         <main>
             <h1>Cadastro</h1>
-            <form>
+            <form onSubmit={handleSubmit}>
                 <label htmlFor="nome">Nome</label>
-                <input 
-                    type="text" 
-                    id="nome" 
+                <input
+                    type="text"
+                    id="nome"
                     className="border"
                     value={nome}
-                    onChange={(e) => setNome(e.target.value)} 
-                    />
+                    onChange={(e) => setNome(e.target.value)}
+                />
                 <label htmlFor="nomeUsuario">Nome de Usuário</label>
-                <input 
-                    type="text" 
-                    id="nomeUsuario" 
+                <input
+                    type="text"
+                    id="nomeUsuario"
                     className="border"
                     value={nomeUsuario}
-                    onChange={(e) => setNomeUsuario(e.target.value)} 
+                    onChange={(e) => setNomeUsuario(e.target.value)}
                 />
                 <label htmlFor="email">Email</label>
-                <input 
-                    type="email" 
-                    id="email" 
+                <input
+                    type="email"
+                    id="email"
                     className="border"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)} 
+                    onChange={(e) => setEmail(e.target.value)}
                 />
                 <label htmlFor="senha">Senha</label>
-                <input 
-                    type="password" 
-                    id="senha" 
+                <input
+                    type="password"
+                    id="senha"
                     className="border"
                     value={senha}
-                    onChange={(e) => setSenha(e.target.value)} 
+                    onChange={(e) => setSenha(e.target.value)}
                 />
                 <button type="submit">Cadastrar</button>
             </form>
