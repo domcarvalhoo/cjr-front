@@ -45,7 +45,6 @@ export default function Cadastro() {
                 />
                 <button type="submit">Cadastrar</button>
             </form>
-            <p>Você digitou: {email}</p>
         </main>
     );
 }
