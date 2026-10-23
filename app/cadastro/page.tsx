@@ -58,7 +58,7 @@ export default function Cadastro() {
                 email,
                 senha,
             });
-            router.push("/login");
+            router.push("/");
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 const mensagem = err.response?.data?.message;
@@ -176,4 +176,4 @@ export default function Cadastro() {
             </main>
         </div>
     );
-}
+}
