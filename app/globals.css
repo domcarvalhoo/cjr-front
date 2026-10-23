@@ -1,5 +1,6 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+@import "tailwindcss";
 
 :root {
   --background: #f5f2e6;
@@ -10,30 +11,32 @@
   --gray: #92928c;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-html,
-body {
-  min-height: 100%;
-}
+  html,
+  body {
+    min-height: 100%;
+  }
 
-body {
-  background: var(--background);
-  color: #000;
-  font-family: "Inter", Arial, sans-serif;
-}
+  body {
+    background: var(--background);
+    color: #000;
+    font-family: "Inter", Arial, sans-serif;
+  }
 
-button,
-input {
-  font: inherit;
-}
+  button,
+  input {
+    font: inherit;
+  }
 
-a {
-  color: inherit;
+  a {
+    color: inherit;
+  }
 }
 
 .login-page {
