@@ -2,11 +2,16 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 import { League_Spartan } from "next/font/google";
+
+import { api } from "../../lib/api";
 
 const leagueSpartan = League_Spartan({ subsets: ["latin"] });
 
 export default function Cadastro() {
+    const router = useRouter();
     const [nome, setNome] = useState("");
     const [nomeUsuario, setNomeUsuario] = useState("");
     const [email, setEmail] = useState("");
@@ -15,8 +20,9 @@ export default function Cadastro() {
     const [erro, setErro] = useState("");
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
+    const [carregando, setCarregando] = useState(false);
 
-    function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
         if (nome.trim() === "") {
             setErro("O nome é obrigatório.");
@@ -34,12 +40,35 @@ export default function Cadastro() {
             setErro("A senha é obrigatória.");
             return;
         }
+        if (senha.length < 6) {
+            setErro("A senha deve ter pelo menos 6 caracteres.");
+            return;
+        }
         if (senha !== confirmarSenha) {
             setErro("As senhas não coincidem.");
             return;
         }
         setErro("");
-        console.log("Tudo certo, pronto para enviar");
+        setCarregando(true);
+
+        try {
+            await api.post("/user", {
+                nome,
+                nomeUsuario,
+                email,
+                senha,
+            });
+            router.push("/login");
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                const mensagem = err.response?.data?.message;
+                setErro(Array.isArray(mensagem) ? mensagem[0] : mensagem ?? "Não foi possível criar a conta.");
+            } else {
+                setErro("Não foi possível criar a conta.");
+            }
+        } finally {
+            setCarregando(false);
+        }
     }
 
     return (
@@ -123,9 +152,10 @@ export default function Cadastro() {
 
                         <button
                             type="submit"
-                            className="w-full h-[56px] flex items-center justify-center rounded-full bg-[#6A38F3] text-[#FFFFFF] font-semibold uppercase hover:opacity-90 [text-box:trim-both_cap_alphabetic]"
+                            disabled={carregando}
+                            className="w-full h-[56px] flex items-center justify-center rounded-full bg-[#6A38F3] text-[#FFFFFF] font-semibold uppercase hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed [text-box:trim-both_cap_alphabetic]"
                         >
-                            Criar conta
+                            {carregando ? "Criando..." : "Criar conta"}
                         </button>
 
                         {erro && <p className="text-[#EF4444] text-sm text-center">{erro}</p>}
@@ -146,4 +176,4 @@ export default function Cadastro() {
             </main>
         </div>
     );
-}
+}
