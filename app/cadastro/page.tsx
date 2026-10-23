@@ -163,7 +163,7 @@ export default function Cadastro() {
 
                     <p className="text-[#FFFFFF] mt-6 self-start">
                         Já possui uma conta?{" "}
-                        <Link href="/login" className="text-[#6A38F3] font-medium">
+                        <Link href="/" className="text-[#6A38F3] font-medium">
                             Login
                         </Link>
                     </p>
