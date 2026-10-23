@@ -58,7 +58,7 @@ export default function Cadastro() {
                 email,
                 senha,
             });
-            router.push("/");
+            router.push("/inicial");
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 const mensagem = err.response?.data?.message;
@@ -163,7 +163,7 @@ export default function Cadastro() {
 
                     <p className="text-[#FFFFFF] mt-6 self-start">
                         Já possui uma conta?{" "}
-                        <Link href="/login" className="text-[#6A38F3] font-medium">
+                        <Link href="/inicial" className="text-[#6A38F3] font-medium">
                             Login
                         </Link>
                     </p>
