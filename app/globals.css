@@ -402,3 +402,25 @@
     padding-right: 48px;
   }
 }
+
+/* mensagens de feedback dentro do cartão escuro (login, recuperação e redefinição de senha) */
+.form-erro,
+.form-sucesso {
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.form-erro {
+  color: #ff8f8f;
+}
+
+.form-sucesso {
+  color: var(--green);
+}
+
+.login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
