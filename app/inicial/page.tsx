@@ -1,123 +1,77 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { api } from "../../lib/api";
+import { mensagemDeErro } from "../../lib/erro";
+import { salvarToken } from "../../lib/sessao";
+import CampoSenha from "../componentes/campo-senha";
+import TelaAuth from "../componentes/tela-auth";
 
 export default function Home() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
-  async function handleSubmit(event: { preventDefault: () => void }) {
-  event.preventDefault();
+  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErro("");
+    setCarregando(true);
 
-  try {
-    const resposta = await api.post("/user/login", { email, senha });
-
-    alert("Login realizado com sucesso!");
-    console.log(resposta.data);
-  } catch (erro) {
-    alert("Não conseguimos entrar na sua conta. Verifique se seu e-mail e sua senha estão corretos e tente novamente. Ainda não tem uma conta? Cadastre-se! Estamos te esperando! ♡");
+    try {
+      const resposta = await api.post("/auth/login", { email, senha });
+      salvarToken(resposta.data.token);
+      router.push("/painel");
+    } catch (err) {
+      setErro(mensagemDeErro(err, "Não foi possível entrar. Tente novamente."));
+    } finally {
+      setCarregando(false);
+    }
   }
- }
 
   return (
-    <main className="login-page">
-      <section className="illustration-section">
-        <a href="/" className="logo-container">
-          <img
-            src="/imagens-tela-inicial/LOGO-inicial.png"
-            alt="STOCK.IO LOGO"
-            className="logo"
-          />
+    <TelaAuth titulo="BEM VINDO DE VOLTA!">
+      <form onSubmit={handleSubmit} className="login-form">
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          aria-label="Email"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+        />
+
+        <CampoSenha
+          name="senha"
+          placeholder="Senha"
+          value={senha}
+          onChange={setSenha}
+          autoComplete="current-password"
+        />
+
+        <a href="/recuperar-senha" className="forgot-password">
+          Esqueceu sua senha?
         </a>
 
-        <div className="character-container">
-          <img
-            src="/imagens-tela-inicial/personagem-inicial.png"
-            alt="Personagem STOCK.IO"
-            className="character"
-          />
-        </div>
-      </section>
-
-      <section className="login-section">
-        <div className="login-card">
-          <h1>BEM VINDO DE VOLTA!</h1>
-
-          <form onSubmit={handleSubmit} className="login-form">
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              aria-label="Email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-
-            <div className="password-container">
-              <input
-                type={mostrarSenha ? "text" : "password"}
-                name="senha"
-                placeholder="Senha"
-                aria-label="Senha"
-                autoComplete="current-password"
-                value={senha}
-                onChange={(event) => setSenha(event.target.value)}
-                required
-              />
-
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setMostrarSenha(!mostrarSenha)}
-                aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
-              >
-                {mostrarSenha ? (
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="22"
-                    height="22"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8" />
-                    <path d="M9.9 5.2A10.8 10.8 0 0112 5c5 0 9 5 9 7a10.8 10.8 0 01-3 3.7M6.2 6.2C3.8 7.8 3 10.2 3 12c0 2 4 7 9 7a10.7 10.7 0 004-.8" />
-                  </svg>
-                ) : (
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="22"
-                    height="22"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
-              </button>
-            </div>
-
-            <a href="/recuperar-senha" className="forgot-password">
-              Esqueceu sua senha?
-            </a>
-
-            <button type="submit" className="login-button">
-              ENTRAR
-            </button>
-          </form>
-
-          <p className="register-text">
-            Não possui uma conta?{" "}
-            <a href="/cadastro">Cadastre-se</a>
+        {erro && (
+          <p className="form-erro" role="alert">
+            {erro}
           </p>
-        </div>
-      </section>
-    </main>
+        )}
+
+        <button type="submit" className="login-button" disabled={carregando}>
+          {carregando ? "ENTRANDO..." : "ENTRAR"}
+        </button>
+      </form>
+
+      <p className="register-text">
+        Não possui uma conta? <a href="/cadastro">Cadastre-se</a>
+      </p>
+    </TelaAuth>
   );
 }
