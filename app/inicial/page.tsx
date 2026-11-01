@@ -24,6 +24,7 @@ export default function Home() {
     try {
       const resposta = await api.post("/auth/login", { email, senha });
       salvarToken(resposta.data.token);
+      router.refresh();
       router.push("/painel");
     } catch (err) {
       setErro(mensagemDeErro(err, "Não foi possível entrar. Tente novamente."));
