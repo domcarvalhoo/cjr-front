@@ -4,11 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { League_Spartan } from "next/font/google";
 
 import { api } from "../../lib/api";
-
-const leagueSpartan = League_Spartan({ subsets: ["latin"] });
 
 export default function Cadastro() {
     const router = useRouter();
@@ -74,7 +71,7 @@ export default function Cadastro() {
     return (
         <div className="min-h-screen w-full bg-[#F6F3E4] flex justify-center">
             <main className="relative w-[1440px] h-[1024px] flex justify-between px-[85px] overflow-hidden">
-                <div className={`${leagueSpartan.className} font-light text-[25px] leading-none w-[654px] mt-[113px] bg-[#1E1E1E] rounded-t-[40px] px-24 pt-16 flex flex-col items-center`}>
+                <div className="font-light text-[25px] leading-none w-[654px] mt-[113px] bg-[#1E1E1E] rounded-t-[40px] px-24 pt-16 flex flex-col items-center">
                     <h1 className="text-white text-4xl font-bold uppercase mb-10">
                         Crie sua conta
                     </h1>
@@ -158,12 +155,12 @@ export default function Cadastro() {
                             {carregando ? "Criando..." : "Criar conta"}
                         </button>
 
-                        {erro && <p className="text-[#EF4444] text-sm text-center">{erro}</p>}
+                        {erro && <p className="text-[var(--white)] text-[20px] text-center">{erro}</p>}
                     </form>
 
                     <p className="text-[#FFFFFF] mt-6 self-start">
                         Já possui uma conta?{" "}
-                        <Link href="/inicial" className="text-[#6A38F3] font-medium">
+                        <Link href="/inicial" className="text-[#6A38F3] font-medium transition-colors hover:text-[#c8f000]">
                             Login
                         </Link>
                     </p>
