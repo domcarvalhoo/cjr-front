@@ -28,9 +28,16 @@ export default function Painel() {
       });
   }, [router]);
 
-  function sair() {
-    limparToken();
-    router.push("/inicial");
+  async function sair() {
+    try {
+      await api.post("/auth/logout");
+      limparToken();
+      router.refresh();
+      router.push("/inicial");
+
+    } catch (erro) {
+      console.error("Erro ao realizar logout", erro);
+    }
   }
 
   if (!usuario) {

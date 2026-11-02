@@ -4,6 +4,7 @@ import { lerToken } from "./sessao";
 
 export const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
+    withCredentials: true,
 });
 
 // envia o token de login em todas as chamadas, quando existir
