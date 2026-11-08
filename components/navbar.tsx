@@ -32,7 +32,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
   return (
     <nav className="w-full h-20 bg-black flex items-center justify-between px-8">
       <div className="flex items-center">
-        <Link href="/">
+        <Link href="/painel">
           <span className="text-3xl font-black text-white tracking-tighter">
             STOCK.I<span className="text-lime-400">O</span>
           </span>
