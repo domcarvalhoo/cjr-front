@@ -21,7 +21,6 @@ interface Produto {
 
 export default function PesquisaProdutos({ termo }: { termo: string }) {
   const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [termoPesquisa, setTermoPesquisa] = useState("");
 
   useEffect(() => {
     async function buscarProdutos() {
@@ -39,7 +38,7 @@ export default function PesquisaProdutos({ termo }: { termo: string }) {
   }, []);
 
   const produtosFiltrados = produtos.filter((produto) =>
-    produto.titulo.toLowerCase().includes(termoPesquisa.toLowerCase())
+    produto.titulo.toLowerCase().includes(termo.toLowerCase())
   );
 
   return (

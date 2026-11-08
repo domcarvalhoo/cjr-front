@@ -21,12 +21,12 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
 
     async function handleLogout() {
         try {
-        await api.post('/auth/logout'); 
-        
-        router.refresh(); 
-        router.push('/inicial');
+          await api.post('/auth/logout'); 
+          
+          router.refresh(); 
+          router.push('/inicial');
         } catch (error) {
-        console.error('Erro ao fazer logout', error);
+          console.error('Erro ao fazer logout', error);
         }
     }
   return (
