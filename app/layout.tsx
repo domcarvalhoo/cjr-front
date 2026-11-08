@@ -25,7 +25,7 @@ export default async function RootLayout({
   const token = cookieStore.get('auth_token');
   const isAuthenticated = !!token?.value;
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={leagueSpartan.variable}>
       <body>
         <Navbar isLoggedIn={isAuthenticated} />
         <main>{children}</main>
