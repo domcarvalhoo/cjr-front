@@ -26,7 +26,7 @@ export default function PesquisaProdutos({ termo }: { termo: string }) {
   useEffect(() => {
     async function buscarProdutos() {
       try {
-        const resposta = await axios.get("http://localhost:3001/produtos", {
+        const resposta = await axios.get("http://localhost:3001/produto", {
           withCredentials: true,
         });
         setProdutos(resposta.data);

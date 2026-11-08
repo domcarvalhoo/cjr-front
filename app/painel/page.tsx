@@ -32,7 +32,6 @@ export default function FeedPage() {
 
       <section className="px-12 mt-8 max-w-[1440px] mx-auto">
         
-        {/* Nova Barra de Pesquisa posicionada no topo (substitui a vermelha) */}
         <div className="flex justify-end mb-8">
           <div className="relative w-full max-w-md">
             <input
@@ -81,8 +80,11 @@ export default function FeedPage() {
           <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
              {/* Cartão de Produto Vazio */}
              {[1].map((item) => (
-               <div key={item} className="bg-white min-w-[250px] h-[300px] rounded-3xl shadow-sm relative overflow-hidden flex flex-col items-center justify-center p-4">
-                 {/* Selo da loja */}
+                <button 
+                  key={item} 
+                  type="button"
+                  className="bg-white min-w-[250px] h-[300px] rounded-3xl shadow-sm relative overflow-hidden flex flex-col items-center justify-center p-4 cursor-pointer text-left transition-transform hover:scale-[1.02] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                >
                   <div className="absolute top-4 right-4 w-18 h-18 rounded-full overflow-hidden shadow-sm">
                     <Image 
                       src="/imagens-feed/logocjr.png"
@@ -92,7 +94,6 @@ export default function FeedPage() {
                       className="object-cover" 
                     />
                   </div>
-                  {/* Espaço para imagem do produto */}
                   <div className="w-32 h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center text-gray-400 text-xs">
                     Imagem
                   </div>
@@ -107,7 +108,7 @@ export default function FeedPage() {
                       DISPONIBILIDADE
                     </span>
                   </div>
-               </div>
+               </button>
              ))}
           </div>
         </div>
@@ -125,8 +126,11 @@ export default function FeedPage() {
           <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
              {/* Cartão de Produto Vazio */}
              {[1].map((item) => (
-               <div key={item} className="bg-white min-w-[250px] h-[300px] rounded-3xl shadow-sm relative overflow-hidden flex flex-col items-center justify-center p-4">
-                 {/* Selo da loja */}
+               <button 
+                  key={item} 
+                  type="button"
+                  className="bg-white min-w-[250px] h-[300px] rounded-3xl shadow-sm relative overflow-hidden flex flex-col items-center justify-center p-4 cursor-pointer text-left transition-transform hover:scale-[1.02] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                >
                   <div className="absolute top-4 right-4 w-18 h-18 rounded-full overflow-hidden shadow-sm">
                     <Image 
                       src="/imagens-feed/logorarebeauty.png"
@@ -136,7 +140,6 @@ export default function FeedPage() {
                       className="object-cover" 
                     />
                   </div>
-                  {/* Espaço para imagem do produto */}
                   <div className="w-32 h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center text-gray-400 text-xs">
                     Imagem
                   </div>
@@ -151,7 +154,7 @@ export default function FeedPage() {
                       DISPONIBILIDADE
                     </span>
                   </div>
-               </div>
+               </button>
              ))}
           </div>
         </div>
