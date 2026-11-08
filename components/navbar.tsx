@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ShoppingBag, Store, User, LogOut } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -11,6 +11,14 @@ interface NavbarProps {
 
 export default function Navbar({ isLoggedIn }: NavbarProps) {
     const router = useRouter();
+
+    const pathname = usePathname();
+
+    const rotasEscondidas = ['/inicial', '/cadastro'];
+
+    if (rotasEscondidas.includes(pathname)) {
+      return null; 
+    }
 
     async function handleLogout() {
         try {
@@ -25,7 +33,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
   return (
     <nav className="w-full h-20 bg-black flex items-center justify-between px-8">
       <div className="flex items-center">
-        <Link href="/">
+        <Link href="/painel">
           <Image src="/logo-stockio-clara.png" alt="STOCK.IO" width={421} height={127} priority className="h-10 w-auto" />
         </Link>
       </div>
@@ -69,4 +77,4 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
       </div>
     </nav>
   );
-}
+}
