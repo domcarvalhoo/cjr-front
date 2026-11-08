@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ShoppingBag, Store, User, LogOut } from 'lucide-react';
@@ -25,9 +26,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
     <nav className="w-full h-20 bg-black flex items-center justify-between px-8">
       <div className="flex items-center">
         <Link href="/">
-          <span className="text-3xl font-black text-white tracking-tighter">
-            STOCK.I<span className="text-lime-400">O</span>
-          </span>
+          <Image src="/logo-stockio-clara.png" alt="STOCK.IO" width={421} height={127} priority className="h-10 w-auto" />
         </Link>
       </div>
 
@@ -41,9 +40,9 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
 
         {isLoggedIn ? (
           <>
-            <button className="text-white hover:text-[#c4f000] transition-colors duration-200 cursor-pointer">
+            <Link href="/perfil" aria-label="Meu perfil" className="text-white hover:text-[#c4f000] transition-colors duration-200 cursor-pointer">
               <User strokeWidth={2.5} className="w-6 h-6" />
-            </button>
+            </Link>
             <button 
               onClick={handleLogout} 
               className="text-white hover:text-red-600 transition-colors duration-200 cursor-pointer"
@@ -70,4 +69,4 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
       </div>
     </nav>
   );
-}
+}
