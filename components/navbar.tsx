@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ShoppingBag, Store, User, LogOut } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -10,6 +10,14 @@ interface NavbarProps {
 
 export default function Navbar({ isLoggedIn }: NavbarProps) {
     const router = useRouter();
+
+    const pathname = usePathname();
+
+    const rotasEscondidas = ['/inicial', '/cadastro'];
+
+    if (rotasEscondidas.includes(pathname)) {
+      return null; 
+    }
 
     async function handleLogout() {
         try {
