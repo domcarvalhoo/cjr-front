@@ -2,7 +2,7 @@
 
 import { useState, useEffect, SubmitEvent } from 'react';
 import { X } from 'lucide-react';
-import { api } from '@/lib/api';
+// import { api } from '@/lib/api';
 
 export interface UsuarioResumo {
   id: string;
@@ -42,64 +42,50 @@ export default function ModalEditarComentario({
 
   if (!comentario) return null;
 
-  async function handleSalvar(e: SubmitEvent) {
+  async function handleSalvar(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!comentario || !texto.trim() || salvando) return;
 
     setSalvando(true);
-    try {
-      const { data } = await api.patch(`/comentario/${comentario.id}`, {
-        texto: texto.trim(),
-      });
-      onSuccess(data);
-      onClose();
-    } catch (error) {
-      console.error('Erro ao editar comentário:', error);
-    } finally {
-      setSalvando(false);
-    }
+
+    onSuccess({
+      ...comentario,
+      texto: texto.trim(),
+      atualizadoEm: new Date().toISOString(),
+    });
+
+    setSalvando(false);
+    onClose();
   }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-xl">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-black">Editar comentário</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar modal"
-            className="text-zinc-400 hover:text-black transition-colors cursor-pointer"
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <div className="bg-[#EDEDED] rounded-[28px] w-full max-w-3xl px-8 md:px-14 pt-14 pb-9 relative shadow-2xl">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Fechar modal"
+          className="absolute top-6 right-6 text-black hover:opacity-70 transition-opacity cursor-pointer"
+        >
+          <X size={32} strokeWidth={1.75} />
+        </button>
 
-        <form onSubmit={handleSalvar} className="flex flex-col gap-4">
+        <form onSubmit={handleSalvar} className="flex flex-col items-center">
           <textarea
-            rows={3}
+            autoFocus
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            className="w-full border border-zinc-300 rounded-2xl p-3.5 text-sm text-black focus:outline-none focus:border-[#7c3aed] resize-none"
-            placeholder="Digite seu comentário..."
+            placeholder="Comentário"
+            className="w-full h-72 bg-white rounded-[24px] p-7 text-base text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#6338F6]/40 resize-none"
           />
 
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2 rounded-full text-sm text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={!texto.trim() || salvando}
-              className="px-6 py-2 rounded-full text-sm font-semibold bg-[#7c3aed] text-white hover:bg-purple-700 disabled:opacity-50 transition-colors cursor-pointer"
-            >
-              {salvando ? 'Salvando...' : 'Salvar'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={!texto.trim() || salvando}
+            className="mt-8 w-full max-w-md py-3 rounded-full bg-[#6338F6] hover:bg-[#5227e0] text-white font-medium text-base shadow-md transition-all disabled:opacity-50 cursor-pointer"
+          >
+            {salvando ? 'Atualizando...' : 'Atualizar'}
+          </button>
         </form>
       </div>
     </div>

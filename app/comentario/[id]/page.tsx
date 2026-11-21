@@ -1,36 +1,43 @@
-import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
 import TelaComentariosAvaliacao from '@/components/tela-comentario';
-
-type Props = {
-  params: Promise<{ id: string }>;
-};
-
-export default function PaginaDetalhesAvaliacao({ params }: Props) {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-black text-white p-10">Carregando...</div>}>
-      <ConteudoAvaliacao params={params} />
-    </Suspense>
-  );
+import ModalEditarComentario, {
+  type UsuarioResumo
+} from '@/components/editar-comentario';
+export interface Avaliacao {
+  id: string;
+  nota: number;
+  comentario: string | null;
+  criadoEm: string;
+  usuarioId: string;
+  usuario: UsuarioResumo;
+  loja?: {
+    donoId?: string;
+  };
 }
 
-async function ConteudoAvaliacao({ params }: Props) {
-  const { id } = await params;
-
-  const resposta = await fetch(`http://localhost:3001/avaliacoes-produto/${id}`, {
-    cache: 'no-store',
-  });
-
-  if (!resposta.ok) {
-    notFound();
-  }
-
-  const avaliacao = await resposta.json();
+export default function PaginaDetalhesComentarioMock() {
+  const avaliacaoMock: Avaliacao = {
+    id: '00000000-0000-0000-0000-000000000001',
+    nota: 5,
+    comentario:
+      'Adorei o produto. Funcionou muito na minha pele. Estou muito contente e com toda certeza irei comprar mais produtos da marca. Que orgulhoooooooo! Arrasaram',
+    criadoEm: '2026-11-21T02:00:00.000Z',
+    usuarioId: 'user-sofia-id',
+    usuario: {
+      id: 'user-sofia-id',
+      nome: 'Sofia Figueiredo',
+      nomeUsuario: 'sofiafig',
+      fotoUrl: null,
+    },
+    loja: {
+      donoId: 'user-selena-id',
+    },
+  };
 
   return (
     <TelaComentariosAvaliacao
-      avaliacao={avaliacao}
-      donoDaLojaId={avaliacao.loja?.donoId}
+      avaliacao={avaliacaoMock}
+      usuarioLogadoId="user-sofia-id"
+      donoDaLojaId="user-selena-id"
     />
   );
 }

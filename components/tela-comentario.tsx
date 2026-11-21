@@ -1,20 +1,21 @@
 'use client';
 
-import { useState, useEffect, SubmitEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ChevronLeft, Pencil, Star, Send, Trash2 } from 'lucide-react';
-import { api } from '@/lib/api';
+// import { api } from '@/lib/api';
 
+import ModalCriarComentario from './criar-comentario';
 import ModalEditarComentario, {
   type Comentario,
   type UsuarioResumo
-} from '@/components/editar-comentario';
+} from './editar-comentario';
 
-/* import ModalEditarAvaliacao, {
+/*import ModalEditarAvaliacao, {
   type Avaliacao,
-} from './modal-editar-avaliacao'; */
-export interface Avaliacao {
+} from './modal-editar-avaliacao';*/
+ export interface Avaliacao {
   id: string;
   nota: number;
   comentario: string | null;
@@ -25,6 +26,7 @@ export interface Avaliacao {
     donoId?: string;
   };
 }
+
 
 interface Props {
   avaliacao: Avaliacao;
@@ -40,56 +42,51 @@ export default function TelaComentariosAvaliacao({
   const router = useRouter();
   const [avaliacao, setAvaliacao] = useState<Avaliacao>(avaliacaoInicial);
   const [idUsuarioAtual, setIdUsuarioAtual] = useState<string | null>(
-    usuarioLogadoProp ?? null
+    usuarioLogadoProp ?? 'user-sofia-id'
   );
 
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
-  const [novoComentario, setNovoComentario] = useState('');
   const [carregando, setCarregando] = useState(true);
-  const [enviando, setEnviando] = useState(false);
 
-  // Estados de controle de abertura dos Modais
+  const [modalCriarAberto, setModalCriarAberto] = useState(false);
   const [comentarioEmEdicao, setComentarioEmEdicao] = useState<Comentario | null>(null);
   const [modalAvaliacaoAberto, setModalAvaliacaoAberto] = useState(false);
 
-  // Identifica o usuário logado pelo cookie se não vier via prop
   useEffect(() => {
-    if (usuarioLogadoProp) {
-      setIdUsuarioAtual(usuarioLogadoProp);
-      return;
-    }
-
-    async function buscarUsuarioLogado() {
-      try {
-        const { data } = await api.get('/auth/me');
-        setIdUsuarioAtual(data.id || data.sub || null);
-      } catch {
-        setIdUsuarioAtual(null);
-      }
-    }
-
-    buscarUsuarioLogado();
+    setIdUsuarioAtual(usuarioLogadoProp ?? 'user-sofia-id');
   }, [usuarioLogadoProp]);
 
-  // Carrega a lista de comentários
   useEffect(() => {
-    async function carregarComentarios() {
-      try {
-        const { data } = await api.get('/comentario', {
-          params: { avaliacaoLojaId: avaliacao.id },
-        });
-        setComentarios(data);
-      } catch (error) {
-        console.error('Erro ao buscar comentários:', error);
-      } finally {
-        setCarregando(false);
-      }
-    }
-
-    if (avaliacao?.id) {
-      carregarComentarios();
-    }
-  }, [avaliacao?.id]);
+    setComentarios([
+      {
+        id: 'coment-1',
+        texto: 'Amei muito também!',
+        criadoEm: new Date(Date.now() - 3600 * 1000).toISOString(),
+        atualizadoEm: new Date().toISOString(),
+        usuarioId: 'user-maria-id',
+        usuario: {
+          id: 'user-maria-id',
+          nome: 'Maria Santos',
+          nomeUsuario: 'mariasantos',
+          fotoUrl: null,
+        },
+      },
+      {
+        id: 'coment-2',
+        texto: 'Muito obrigada pelo carinho! Nós da Rare Beauty ficamos felizes =)',
+        criadoEm: new Date(Date.now() - 3600 * 1000).toISOString(),
+        atualizadoEm: new Date().toISOString(),
+        usuarioId: 'user-selena-id',
+        usuario: {
+          id: 'user-selena-id',
+          nome: 'Selena Gomez',
+          nomeUsuario: 'selenagomez',
+          fotoUrl: null,
+        },
+      },
+    ]);
+    setCarregando(false);
+  }, []);
 
   function formatarTempoRelativo(dataIso: string) {
     const diferencaMs = Date.now() - new Date(dataIso).getTime();
@@ -101,33 +98,9 @@ export default function TelaComentariosAvaliacao({
     return `${dias}d`;
   }
 
-  async function handleEnviarComentario(e: SubmitEvent) {
-    e.preventDefault();
-    if (!novoComentario.trim() || enviando) return;
-
-    setEnviando(true);
-    try {
-      const { data } = await api.post('/comentario', {
-        texto: novoComentario,
-        avaliacaoLojaId: avaliacao.id,
-      });
-
-      setComentarios((prev) => [...prev, data]);
-      setNovoComentario('');
-    } catch (error) {
-      console.error('Erro ao publicar comentário:', error);
-    } finally {
-      setEnviando(false);
-    }
-  }
-
+  // Simulação local (mock) de exclusão
   async function handleExcluirComentario(id: string) {
-    try {
-      await api.delete(`/comentario/${id}`);
-      setComentarios((prev) => prev.filter((c) => c.id !== id));
-    } catch (error) {
-      console.error('Erro ao excluir comentário:', error);
-    }
+    setComentarios((prev) => prev.filter((c) => c.id !== id));
   }
 
   const ehDonoDaAvaliacao = Boolean(
@@ -139,7 +112,6 @@ export default function TelaComentariosAvaliacao({
       {/* SEÇÃO SUPERIOR PRETA: Avaliação Principal */}
       <section className="w-full bg-black text-white px-6 md:px-16 pt-6 pb-14">
         <div className="max-w-6xl mx-auto">
-          {/* Lápis só aparece se a avaliação pertencer ao usuário logado */}
           <div className="flex justify-end h-6 mb-2">
             {ehDonoDaAvaliacao && (
               <button
@@ -207,7 +179,7 @@ export default function TelaComentariosAvaliacao({
         </div>
       </section>
 
-      {/* SECÇÃO INFERIOR CREME: Thread de Comentários e Input */}
+      {/* SEÇÃO INFERIOR CREME: Thread de Comentários e Barra de Gatilho */}
       <section className="flex-1 w-full px-6 md:px-16 py-10 flex flex-col justify-between max-w-6xl mx-auto">
         <div className="pl-4 md:pl-12">
           {carregando ? (
@@ -256,7 +228,6 @@ export default function TelaComentariosAvaliacao({
                           )}
                         </div>
 
-                        {/* Lápis só aparece se o comentário pertencer ao usuário logado */}
                         {ehDonoDoComentario && (
                           <div className="flex items-center gap-2.5 ml-3">
                             <button
@@ -292,32 +263,31 @@ export default function TelaComentariosAvaliacao({
           )}
         </div>
 
-        {/* Barra Inferior: Input arredondado "Adicionar comentário" */}
-        <form
-          onSubmit={handleEnviarComentario}
-          className="mt-14 w-full max-w-4xl mx-auto"
-        >
-          <div className="relative flex items-center w-full bg-white rounded-full shadow-sm px-6 py-3.5">
-            <input
-              type="text"
-              placeholder="Adicionar comentário"
-              value={novoComentario}
-              onChange={(e) => setNovoComentario(e.target.value)}
-              className="w-full bg-transparent text-zinc-800 placeholder-zinc-400 text-sm focus:outline-none pr-10"
-            />
-            <button
-              type="submit"
-              disabled={!novoComentario.trim() || enviando}
-              aria-label="Enviar comentário"
-              className="absolute right-5 text-zinc-400 hover:text-zinc-700 disabled:opacity-40 transition-colors cursor-pointer"
-            >
-              <Send size={20} className="rotate-12" />
-            </button>
-          </div>
-        </form>
+        {/* Barra Inferior: Clicar abre o ModalCriarComentario */}
+        <div className="mt-14 w-full max-w-4xl mx-auto">
+          <button
+            type="button"
+            onClick={() => setModalCriarAberto(true)}
+            className="w-full flex items-center justify-between bg-white rounded-full shadow-sm px-6 py-3.5 text-left hover:ring-2 hover:ring-[#6338F6]/30 transition-all cursor-text"
+          >
+            <span className="text-zinc-400 text-sm">
+              Adicionar comentário
+            </span>
+            <Send size={20} className="text-zinc-400 rotate-12" />
+          </button>
+        </div>
       </section>
 
-      {/* COMPONENTES DE MODAL CHAMADOS PELA TELA */}
+      {/* MODAIS */}
+      <ModalCriarComentario
+        aberto={modalCriarAberto}
+        avaliacaoLojaId={avaliacao.id}
+        onClose={() => setModalCriarAberto(false)}
+        onSuccess={(novoComentario) =>
+          setComentarios((prev) => [...prev, novoComentario])
+        }
+      />
+
       <ModalEditarComentario
         comentario={comentarioEmEdicao}
         onClose={() => setComentarioEmEdicao(null)}
@@ -329,15 +299,6 @@ export default function TelaComentariosAvaliacao({
           )
         }
       />
-
-      {/*
-      <ModalEditarAvaliacao
-        aberto={modalAvaliacaoAberto}
-        avaliacao={avaliacao}
-        onClose={() => setModalAvaliacaoAberto(false)}
-        onSuccess={(avaliacaoAtualizada) => setAvaliacao(avaliacaoAtualizada)}
-      />
-      */}
     </div>
   );
 }
