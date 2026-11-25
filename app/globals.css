@@ -8,6 +8,7 @@
   --green: #c8f000;
   --gray: #92928c;
   --red: #951332;
+  --light-gray: #ededed;
 }
 
 @theme inline {
@@ -19,6 +20,7 @@
   --color-verde: var(--green);
   --color-cinza: var(--gray);
   --color-vermelho: var(--red);
+  --color-cinza-claro: var(--light-gray);
 }
 
 @layer base {
