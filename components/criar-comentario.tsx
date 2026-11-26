@@ -7,9 +7,9 @@ import { criarComentario, type Comentario } from '@/lib/comentarios';
 
 interface ModalCriarComentarioProps {
   aberto: boolean;
-  avaliacaoLojaId?: string;
-  avaliacaoProdutoId?: string;
-  produtoId?: string;
+  avaliacaoLojaId?: number;
+  avaliacaoProdutoId?: number;
+  produtoId?: number;
   onClose: () => void;
   onSuccess: (novoComentario: Comentario) => void;
 }
@@ -96,4 +96,4 @@ export default function ModalCriarComentario({
       </div>
     </div>
   );
-}
+}

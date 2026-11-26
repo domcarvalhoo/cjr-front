@@ -1,28 +1,28 @@
 import { api } from "./api";
 
 export type UsuarioComentario = {
-  id: string;
+  id: number;
   nome: string;
   nomeUsuario: string;
   fotoUrl: string | null;
 };
 
 export type Comentario = {
-  id: string;
+  id: number;
   texto: string;
   criadoEm: string;
   atualizadoEm: string;
-  usuarioId: string;
-  avaliacaoLojaId?: string | null;
-  avaliacaoProdutoId?: string | null;
-  produtoId?: string | null;
+  usuarioId: number;
+  avaliacaoLojaId?: number | null;
+  avaliacaoProdutoId?: number | null;
+  produtoId?: number | null;
   usuario: UsuarioComentario;
 };
 
 export type FiltrosComentario = {
-  avaliacaoLojaId?: string;
-  avaliacaoProdutoId?: string;
-  produtoId?: string;
+  avaliacaoLojaId?: number;
+  avaliacaoProdutoId?: number;
+  produtoId?: number;
 };
 
 export type NovoComentario = FiltrosComentario & {
@@ -44,19 +44,19 @@ export async function listarComentarios(filtros: FiltrosComentario) {
 }
 
 // GET /comentario/:id
-export async function buscarComentarioPorId(id: string) {
+export async function buscarComentarioPorId(id: number) {
   const resposta = await api.get<Comentario>(`/comentario/${id}`);
   return resposta.data;
 }
 
 // PATCH /comentario/:id
-export async function editarComentario(id: string, texto: string) {
+export async function editarComentario(id: number, texto: string) {
   const resposta = await api.patch<Comentario>(`/comentario/${id}`, { texto });
   return resposta.data;
 }
 
 // DELETE /comentario/:id
-export async function excluirComentario(id: string) {
+export async function excluirComentario(id: number) {
   const resposta = await api.delete<{ mensagem: string }>(`/comentario/${id}`);
   return resposta.data;
-}
+}

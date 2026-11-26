@@ -7,9 +7,9 @@ import axios from "axios";
 
 type StatusProduto = 'DISPONÍVEL' | 'INDISPONÍVEL';
 interface Produto {
-  id: string;
-  lojaId: string;
-  categoriaId: string;
+  id: number;
+  lojaId: number;
+  categoriaId: number;
   titulo: string;
   slug: string;
   descricao?: string;
@@ -76,4 +76,4 @@ export default function PesquisaProdutos({ termo }: { termo: string }) {
       </div>
     </section>
   );
-}
+}

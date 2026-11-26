@@ -18,21 +18,21 @@ import ModalCriarComentario from './criar-comentario';
 import ModalEditarComentario from './editar-comentario';
 
 export interface Avaliacao {
-  id: string;
+  id: number;
   nota: number;
   comentario: string | null;
   criadoEm: string;
-  usuarioId: string;
+  usuarioId: number;
   usuario: UsuarioComentario;
   loja?: {
-    donoId?: string | null;
+    donoId?: number | null;
   };
 }
 
 interface Props {
   avaliacao: Avaliacao;
-  usuarioLogadoId?: string;
-  donoDaLojaId?: string;
+  usuarioLogadoId?: number;
+  donoDaLojaId?: number;
 }
 
 function iniciais(nome: string) {
@@ -94,10 +94,10 @@ export default function TelaComentariosAvaliacao({
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const comentarioIdNaUrl = searchParams.get('comentarioId');
+  const comentarioIdNaUrl = Number(searchParams.get('comentarioId')) || null;
 
   const [usuarioAtual, setUsuarioAtual] = useState<{
-    id: string;
+    id: number;
     fotoUrl: string | null;
   } | null>(
     usuarioLogadoProp ? { id: usuarioLogadoProp, fotoUrl: null } : null
@@ -106,7 +106,7 @@ export default function TelaComentariosAvaliacao({
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erroLista, setErroLista] = useState('');
-  const [comentarioDestacadoId, setComentarioDestacadoId] = useState<string | null>(
+  const [comentarioDestacadoId, setComentarioDestacadoId] = useState<number | null>(
     null
   );
 
@@ -118,7 +118,7 @@ export default function TelaComentariosAvaliacao({
 
   useEffect(() => {
     api
-      .get<{ id: string; fotoUrl: string | null }>('/auth/me')
+      .get<{ id: number; fotoUrl: string | null }>('/auth/me')
       .then((res) => setUsuarioAtual({ id: res.data.id, fotoUrl: res.data.fotoUrl }))
       .catch(() => {
         if (usuarioLogadoProp) {
@@ -162,7 +162,7 @@ export default function TelaComentariosAvaliacao({
     return `${dias}d`;
   }
 
-  async function handleExcluirComentario(id: string) {
+  async function handleExcluirComentario(id: number) {
     try {
       await excluirComentario(id);
       setComentarios((prev) => prev.filter((c) => c.id !== id));
@@ -367,4 +367,4 @@ export default function TelaComentariosAvaliacao({
       />
     </div>
   );
-}
+}

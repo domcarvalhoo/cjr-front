@@ -3,7 +3,7 @@ import { api } from "./api";
 // implementacao das chamadas de loja (rotas em back/docs/lojas.md)
 
 export type Loja = {
-    id: string;
+    id: number;
     nome: string;
     // endereco da loja, ex.: "casa-do-cafe"
     slug: string;
@@ -21,7 +21,7 @@ export type Loja = {
 };
 
 export type CategoriaLoja = {
-    id: string;
+    id: number;
     nome: string;
     slug: string;
 };
@@ -29,7 +29,7 @@ export type CategoriaLoja = {
 // o que o modal "adicionar loja" manda (imagens sao opcionais)
 export type NovaLoja = {
     nome: string;
-    categoriaId: string;
+    categoriaId: number;
     foto: File | null;
     logo: File | null;
     banner: File | null;
@@ -44,7 +44,7 @@ export async function minhasLojas() {
 export async function criarLoja(dados: NovaLoja) {
     const formulario = new FormData();
     formulario.append("nome", dados.nome);
-    formulario.append("categoriaId", dados.categoriaId);
+    formulario.append("categoriaId", String(dados.categoriaId));
 
     for (const campo of ["foto", "logo", "banner"] as const) {
         const arquivo = dados[campo];
@@ -57,7 +57,7 @@ export async function criarLoja(dados: NovaLoja) {
 
 // categorias que uma loja pode ter: so as principais e ativas (sem subcategorias)
 export async function categoriasDaLoja() {
-    const resposta = await api.get<(CategoriaLoja & { paiId: string | null; ativa: boolean })[]>(
+    const resposta = await api.get<(CategoriaLoja & { paiId: number | null; ativa: boolean })[]>(
         "/categoria",
     );
 

@@ -1,14 +1,14 @@
 import { api } from "./api";
 
 export type AvaliacaoPerfil = {
-  id: string;
+  id: number;
   tipo: "loja" | "produto";
   nota: number;
   comentario: string | null;
   criadoEm: string;
-  usuarioId: string;
+  usuarioId: number;
   usuario?: {
-    id: string;
+    id: number;
     nome: string;
     nomeUsuario: string;
     fotoUrl: string | null;
@@ -17,7 +17,7 @@ export type AvaliacaoPerfil = {
 
 type AvaliacaoApi = Omit<AvaliacaoPerfil, "tipo">;
 
-export async function avaliacoesDoUsuario(usuarioId: string): Promise<AvaliacaoPerfil[]> {
+export async function avaliacoesDoUsuario(usuarioId: number): Promise<AvaliacaoPerfil[]> {
   const [resLojas, resProdutos] = await Promise.all([
     api.get<AvaliacaoApi[]>("/avaliacoes/lojas").catch(() => ({ data: [] as AvaliacaoApi[] })),
     api.get<AvaliacaoApi[]>("/avaliacoes/produtos").catch(() => ({ data: [] as AvaliacaoApi[] })),
@@ -34,4 +34,4 @@ export async function avaliacoesDoUsuario(usuarioId: string): Promise<AvaliacaoP
   return [...deLojas, ...deProdutos].sort(
     (a, b) => new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime()
   );
-}
+}

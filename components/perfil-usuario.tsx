@@ -11,9 +11,13 @@ import { avaliacoesDoUsuario, type AvaliacaoPerfil } from "@/lib/avaliacoes";
 import { mensagemDeErro } from "@/lib/erro";
 import { minhasLojas, type Loja } from "@/lib/lojas";
 import ModalCriarLoja from "@/components/modal-criar-loja";
+import ModalEditarPerfil from "@/components/modal-editar-perfil";
+import CardProduto from "@/app/componentes/card-produto";
+import { produtosDaPessoa } from "@/lib/perfil";
+import type { ProdutoCard } from "@/lib/produtos";
 
 export type UsuarioPerfil = {
-    id: string;
+    id: number;
     nome: string;
     nomeUsuario: string;
     email: string;
@@ -91,15 +95,25 @@ function CarrosselHorizontal({ children }: { children: React.ReactNode }) {
     );
 }
 
-export default function PerfilUsuario({ usuario, ehDono }: PerfilUsuarioProps) {
+export default function PerfilUsuario({ usuario: usuarioInicial, ehDono }: PerfilUsuarioProps) {
     const router = useRouter();
     const inputFoto = useRef<HTMLInputElement>(null);
-    const [fotoUrl, setFotoUrl] = useState(usuario.fotoUrl);
+    // copia local: o modal "Editar Perfil" atualiza a tela sem recarregar
+    const [usuario, setUsuario] = useState(usuarioInicial);
+    const [editando, setEditando] = useState(false);
+    const fotoUrl = usuario.fotoUrl;
+    function setFotoUrl(novaFoto: string | null) {
+        setUsuario((atual) => ({ ...atual, fotoUrl: novaFoto }));
+    }
+
+    const [produtos, setProdutos] = useState<ProdutoCard[]>([]);
+    const [carregandoProdutos, setCarregandoProdutos] = useState(true);
+    const [erroProdutos, setErroProdutos] = useState("");
     const [enviando, setEnviando] = useState(false);
     const [erroFoto, setErroFoto] = useState("");
 
     const [lojas, setLojas] = useState<Loja[]>([]);
-    const [carregandoLojas, setCarregandoLojas] = useState(ehDono);
+    const [carregandoLojas, setCarregandoLojas] = useState(true);
     const [erroLojas, setErroLojas] = useState("");
     const [modalLojaAberto, setModalLojaAberto] = useState(false);
 
@@ -110,8 +124,6 @@ export default function PerfilUsuario({ usuario, ehDono }: PerfilUsuarioProps) {
     useEffect(() => {
         if (!ehDono) return;
 
-        setCarregandoLojas(true);
-        setErroLojas("");
         minhasLojas()
             .then(setLojas)
             .catch((err) => {
@@ -122,8 +134,16 @@ export default function PerfilUsuario({ usuario, ehDono }: PerfilUsuarioProps) {
     }, [ehDono]);
 
     useEffect(() => {
-        setCarregandoAvaliacoes(true);
-        setErroAvaliacoes("");
+        produtosDaPessoa(usuario.id)
+            .then(setProdutos)
+            .catch((err) => {
+                setProdutos([]);
+                setErroProdutos(mensagemDeErro(err, "Não foi possível carregar os produtos."));
+            })
+            .finally(() => setCarregandoProdutos(false));
+    }, [usuario.id]);
+
+    useEffect(() => {
         avaliacoesDoUsuario(usuario.id)
             .then(setAvaliacoes)
             .catch((err) => {
@@ -215,6 +235,7 @@ export default function PerfilUsuario({ usuario, ehDono }: PerfilUsuarioProps) {
                         {ehDono && (
                             <button
                                 type="button"
+                                onClick={() => setEditando(true)}
                                 className="mb-4 rounded-full bg-roxo px-20 py-3 text-xl font-medium text-white transition-opacity hover:opacity-90"
                             >
                                 Editar Perfil
@@ -249,7 +270,21 @@ export default function PerfilUsuario({ usuario, ehDono }: PerfilUsuarioProps) {
                         <div className="flex items-center justify-between">
                             <h2 className="text-3xl font-medium text-preto">Produtos</h2>
                         </div>
-                        <p className="mt-6 text-xl font-light text-cinza">Nenhum produto por aqui ainda.</p>
+                        {erroProdutos ? (
+                            <p className="mt-6 text-xl text-red-600">{erroProdutos}</p>
+                        ) : carregandoProdutos ? (
+                            <p className="mt-6 text-xl font-light text-cinza">Carregando produtos...</p>
+                        ) : produtos.length === 0 ? (
+                            <p className="mt-6 text-xl font-light text-cinza">Nenhum produto por aqui ainda.</p>
+                        ) : (
+                            <CarrosselHorizontal>
+                                {produtos.map((produto) => (
+                                    <div key={produto.id} className="w-[228px] shrink-0">
+                                        <CardProduto produto={produto} />
+                                    </div>
+                                ))}
+                            </CarrosselHorizontal>
+                        )}
                     </section>
 
                     {/* LOJAS */}
@@ -398,6 +433,10 @@ export default function PerfilUsuario({ usuario, ehDono }: PerfilUsuarioProps) {
                 </div>
             </div>
 
+            {ehDono && editando && (
+                <ModalEditarPerfil usuario={usuario} aoFechar={() => setEditando(false)} aoSalvar={setUsuario} />
+            )}
+
             {ehDono && modalLojaAberto && (
                 <ModalCriarLoja
                     aoFechar={() => setModalLojaAberto(false)}
@@ -406,4 +445,4 @@ export default function PerfilUsuario({ usuario, ehDono }: PerfilUsuarioProps) {
             )}
         </div>
     );
-}
+}

@@ -46,7 +46,7 @@ type ModalCriarLojaProps = {
 
 export default function ModalCriarLoja({ aoFechar, aoCriar }: ModalCriarLojaProps) {
   const [nome, setNome] = useState("");
-  const [categoriaId, setCategoriaId] = useState("");
+  const [categoriaId, setCategoriaId] = useState<number | null>(null);
   const [dropdownAberto, setDropdownAberto] = useState(false);
   const [imagens, setImagens] = useState<Imagens>({ foto: null, logo: null, banner: null });
   const [categorias, setCategorias] = useState<CategoriaLoja[]>([]);
@@ -207,4 +207,4 @@ export default function ModalCriarLoja({ aoFechar, aoCriar }: ModalCriarLojaProp
       </form>
     </Modal>
   );
-}
+}

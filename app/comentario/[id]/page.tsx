@@ -12,10 +12,10 @@ import { mensagemDeErro } from "@/lib/erro";
 function ConteudoPaginaComentario() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const avaliacaoId = params?.id;
+  const avaliacaoId = Number(params?.id);
 
   const [avaliacao, setAvaliacao] = useState<Avaliacao | null>(null);
-  const [usuarioLogadoId, setUsuarioLogadoId] = useState<string | undefined>(
+  const [usuarioLogadoId, setUsuarioLogadoId] = useState<number | undefined>(
     undefined
   );
   const [carregando, setCarregando] = useState(true);
@@ -29,7 +29,7 @@ function ConteudoPaginaComentario() {
 
     Promise.all([
       api.get<Avaliacao>(`/avaliacoes/lojas/${avaliacaoId}`),
-      api.get<{ id: string }>("/auth/me").catch(() => null),
+      api.get<{ id: number }>("/auth/me").catch(() => null),
     ])
       .then(([resAvaliacao, resUsuario]) => {
         setAvaliacao(resAvaliacao.data);
@@ -89,4 +89,4 @@ export default function PaginaDetalhesComentario() {
       <ConteudoPaginaComentario />
     </Suspense>
   );
-}
+}
