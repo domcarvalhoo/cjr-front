@@ -4,7 +4,7 @@ import { api } from "./api";
 
 // dados que o card usa
 export type ProdutoCard = {
-    id: string;
+    id: number;
     titulo: string;
     preco: number;
     disponivel: boolean;
@@ -26,7 +26,7 @@ export const OPCOES_ORDENACAO: { valor: Ordenacao; nome: string }[] = [
 
 // resposta do back em GET /produto, só o que usamos
 type ProdutoDaApi = {
-    id: string;
+    id: number;
     titulo: string;
     // decimal chega como texto
     preco: string | number;

@@ -6,11 +6,11 @@ import { useParams } from "next/navigation";
 import PerfilUsuario, { type UsuarioPerfil } from "@/components/perfil-usuario";
 import { api } from "@/lib/api";
 import { mensagemDeErro } from "@/lib/erro";
-import { lerToken } from "@/lib/sessao";
 
 // perfil de qualquer usuário: /perfil/<id>
 export default function PerfilPublico() {
-    const { id } = useParams<{ id: string }>();
+    // o id da url chega como texto: converte para numero
+    const id = Number(useParams<{ id: string }>().id);
     const [usuario, setUsuario] = useState<UsuarioPerfil | null>(null);
     const [ehDono, setEhDono] = useState(false);
     const [erro, setErro] = useState("");
@@ -21,13 +21,11 @@ export default function PerfilPublico() {
             .then((resposta) => setUsuario(resposta.data))
             .catch((e) => setErro(mensagemDeErro(e, "Usuário não encontrado.")));
 
-        // se quem está vendo é o dono do perfil, mostra o botão "Editar Perfil"
-        if (lerToken()) {
-            api
-                .get<UsuarioPerfil>("/auth/me")
-                .then((resposta) => setEhDono(resposta.data.id === id))
-                .catch(() => setEhDono(false));
-        }
+        // se quem esta vendo e o dono do perfil, mostra o "Editar Perfil" (sem login da erro e segue como visitante)
+        api
+            .get<UsuarioPerfil>("/auth/me")
+            .then((resposta) => setEhDono(resposta.data.id === id))
+            .catch(() => setEhDono(false));
     }, [id]);
 
     if (erro) {
@@ -42,5 +40,5 @@ export default function PerfilPublico() {
         return null;
     }
 
-    return <PerfilUsuario usuario={usuario} ehDono={ehDono} />;
+    return <PerfilUsuario key={usuario.id} usuario={usuario} ehDono={ehDono} />;
 }

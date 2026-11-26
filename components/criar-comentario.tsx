@@ -2,29 +2,34 @@
 
 import { useState, useEffect, SubmitEvent } from 'react';
 import { X } from 'lucide-react';
-// import { api } from '@/lib/api';
-import type { Comentario } from './editar-comentario';
+import { mensagemDeErro } from '@/lib/erro';
+import { criarComentario, type Comentario } from '@/lib/comentarios';
 
 interface ModalCriarComentarioProps {
   aberto: boolean;
-  avaliacaoLojaId?: string;
-  avaliacaoProdutoId?: string;
-  produtoId?: string;
+  avaliacaoLojaId?: number;
+  avaliacaoProdutoId?: number;
+  produtoId?: number;
   onClose: () => void;
   onSuccess: (novoComentario: Comentario) => void;
 }
 
 export default function ModalCriarComentario({
   aberto,
+  avaliacaoLojaId,
+  avaliacaoProdutoId,
+  produtoId,
   onClose,
   onSuccess,
 }: ModalCriarComentarioProps) {
   const [texto, setTexto] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
     if (aberto) {
       setTexto('');
+      setErro('');
     }
   }, [aberto]);
 
@@ -35,25 +40,24 @@ export default function ModalCriarComentario({
     if (!texto.trim() || enviando) return;
 
     setEnviando(true);
+    setErro('');
 
-    const novoComentarioMock: Comentario = {
-      id: `coment-${Date.now()}`,
-      texto: texto.trim(),
-      criadoEm: new Date().toISOString(),
-      atualizadoEm: new Date().toISOString(),
-      usuarioId: 'user-sofia-id',
-      usuario: {
-        id: 'user-sofia-id',
-        nome: 'Sofia Figueiredo',
-        nomeUsuario: 'sofiafig',
-        fotoUrl: null,
-      },
-    };
+    try {
+      const novoComentario = await criarComentario({
+        texto: texto.trim(),
+        ...(avaliacaoLojaId ? { avaliacaoLojaId } : {}),
+        ...(avaliacaoProdutoId ? { avaliacaoProdutoId } : {}),
+        ...(produtoId ? { produtoId } : {}),
+      });
 
-    onSuccess(novoComentarioMock);
-    setTexto('');
-    setEnviando(false);
-    onClose();
+      onSuccess(novoComentario);
+      setTexto('');
+      onClose();
+    } catch (err) {
+      setErro(mensagemDeErro(err, 'Não foi possível publicar o comentário.'));
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -77,6 +81,10 @@ export default function ModalCriarComentario({
             className="w-full h-72 bg-white rounded-[24px] p-7 text-base text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#6338F6]/40 resize-none"
           />
 
+          {erro && (
+            <p className="mt-4 text-sm text-red-600 text-center">{erro}</p>
+          )}
+
           <button
             type="submit"
             disabled={!texto.trim() || enviando}
@@ -88,4 +96,4 @@ export default function ModalCriarComentario({
       </div>
     </div>
   );
-}
+}
