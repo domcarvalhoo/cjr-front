@@ -1,32 +1,33 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { ChevronLeft, Pencil, Star, Send, Trash2 } from 'lucide-react';
-// import { api } from '@/lib/api';
+import { api } from '@/lib/api';
+import { mensagemDeErro } from '@/lib/erro';
+import {
+  buscarComentarioPorId,
+  excluirComentario,
+  listarComentarios,
+  type Comentario,
+  type UsuarioComentario,
+} from '@/lib/comentarios';
 
 import ModalCriarComentario from './criar-comentario';
-import ModalEditarComentario, {
-  type Comentario,
-  type UsuarioResumo
-} from './editar-comentario';
+import ModalEditarComentario from './editar-comentario';
 
-/*import ModalEditarAvaliacao, {
-  type Avaliacao,
-} from './modal-editar-avaliacao';*/
- export interface Avaliacao {
+export interface Avaliacao {
   id: string;
   nota: number;
   comentario: string | null;
   criadoEm: string;
   usuarioId: string;
-  usuario: UsuarioResumo;
+  usuario: UsuarioComentario;
   loja?: {
-    donoId?: string;
+    donoId?: string | null;
   };
 }
-
 
 interface Props {
   avaliacao: Avaliacao;
@@ -34,59 +35,122 @@ interface Props {
   donoDaLojaId?: string;
 }
 
+function iniciais(nome: string) {
+  return nome
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0].toUpperCase())
+    .join('');
+}
+
+function AvatarUsuario({
+  nome,
+  fotoUrl,
+  tamanhoClasse,
+  textoClasse,
+}: {
+  nome: string;
+  fotoUrl: string | null;
+  tamanhoClasse: string;
+  textoClasse: string;
+}) {
+  const [erroImagem, setErroImagem] = useState(false);
+
+  useEffect(() => {
+    setErroImagem(false);
+  }, [fotoUrl]);
+
+  const src = fotoUrl
+    ? fotoUrl.startsWith('http')
+      ? fotoUrl
+      : `${process.env.NEXT_PUBLIC_API_URL}${fotoUrl}`
+    : null;
+
+  return (
+    <div
+      className={`${tamanhoClasse} relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#6a38f3] font-semibold text-[#F5F2E6] ${textoClasse}`}
+    >
+      {src && !erroImagem ? (
+        <Image
+          src={src}
+          alt={nome}
+          fill
+          unoptimized
+          onError={() => setErroImagem(true)}
+          className="object-cover"
+        />
+      ) : (
+        iniciais(nome)
+      )}
+    </div>
+  );
+}
+
 export default function TelaComentariosAvaliacao({
-  avaliacao: avaliacaoInicial,
+  avaliacao,
   usuarioLogadoId: usuarioLogadoProp,
   donoDaLojaId,
 }: Props) {
   const router = useRouter();
-  const [avaliacao, setAvaliacao] = useState<Avaliacao>(avaliacaoInicial);
-  const [idUsuarioAtual, setIdUsuarioAtual] = useState<string | null>(
-    usuarioLogadoProp ?? 'user-sofia-id'
+  const searchParams = useSearchParams();
+  const comentarioIdNaUrl = searchParams.get('comentarioId');
+
+  const [usuarioAtual, setUsuarioAtual] = useState<{
+    id: string;
+    fotoUrl: string | null;
+  } | null>(
+    usuarioLogadoProp ? { id: usuarioLogadoProp, fotoUrl: null } : null
   );
 
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [erroLista, setErroLista] = useState('');
+  const [comentarioDestacadoId, setComentarioDestacadoId] = useState<string | null>(
+    null
+  );
 
   const [modalCriarAberto, setModalCriarAberto] = useState(false);
   const [comentarioEmEdicao, setComentarioEmEdicao] = useState<Comentario | null>(null);
-  const [modalAvaliacaoAberto, setModalAvaliacaoAberto] = useState(false);
+
+  // 1. Resolve o ID do dono da loja (via prop ou diretamente do objeto avaliacao)
+  const idDonoLoja = donoDaLojaId ?? avaliacao.loja?.donoId;
 
   useEffect(() => {
-    setIdUsuarioAtual(usuarioLogadoProp ?? 'user-sofia-id');
+    api
+      .get<{ id: string; fotoUrl: string | null }>('/auth/me')
+      .then((res) => setUsuarioAtual({ id: res.data.id, fotoUrl: res.data.fotoUrl }))
+      .catch(() => {
+        if (usuarioLogadoProp) {
+          setUsuarioAtual({ id: usuarioLogadoProp, fotoUrl: null });
+        } else {
+          setUsuarioAtual(null);
+        }
+      });
   }, [usuarioLogadoProp]);
 
   useEffect(() => {
-    setComentarios([
-      {
-        id: 'coment-1',
-        texto: 'Amei muito também!',
-        criadoEm: new Date(Date.now() - 3600 * 1000).toISOString(),
-        atualizadoEm: new Date().toISOString(),
-        usuarioId: 'user-maria-id',
-        usuario: {
-          id: 'user-maria-id',
-          nome: 'Maria Santos',
-          nomeUsuario: 'mariasantos',
-          fotoUrl: null,
-        },
-      },
-      {
-        id: 'coment-2',
-        texto: 'Muito obrigada pelo carinho! Nós da Rare Beauty ficamos felizes =)',
-        criadoEm: new Date(Date.now() - 3600 * 1000).toISOString(),
-        atualizadoEm: new Date().toISOString(),
-        usuarioId: 'user-selena-id',
-        usuario: {
-          id: 'user-selena-id',
-          nome: 'Selena Gomez',
-          nomeUsuario: 'selenagomez',
-          fotoUrl: null,
-        },
-      },
-    ]);
-    setCarregando(false);
-  }, []);
+    setCarregando(true);
+    setErroLista('');
+
+    listarComentarios({ avaliacaoLojaId: avaliacao.id })
+      .then(setComentarios)
+      .catch((err) =>
+        setErroLista(mensagemDeErro(err, 'Não foi possível carregar os comentários.'))
+      )
+      .finally(() => setCarregando(false));
+  }, [avaliacao.id]);
+
+  useEffect(() => {
+    if (!comentarioIdNaUrl) {
+      setComentarioDestacadoId(null);
+      return;
+    }
+
+    buscarComentarioPorId(comentarioIdNaUrl)
+      .then((encontrado) => setComentarioDestacadoId(encontrado.id))
+      .catch(() => setComentarioDestacadoId(null));
+  }, [comentarioIdNaUrl]);
 
   function formatarTempoRelativo(dataIso: string) {
     const diferencaMs = Date.now() - new Date(dataIso).getTime();
@@ -98,35 +162,26 @@ export default function TelaComentariosAvaliacao({
     return `${dias}d`;
   }
 
-  // Simulação local (mock) de exclusão
   async function handleExcluirComentario(id: string) {
-    setComentarios((prev) => prev.filter((c) => c.id !== id));
+    try {
+      await excluirComentario(id);
+      setComentarios((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      setErroLista(mensagemDeErro(err, 'Não foi possível excluir o comentário.'));
+    }
   }
 
-  const ehDonoDaAvaliacao = Boolean(
-    idUsuarioAtual && idUsuarioAtual === avaliacao.usuarioId
-  );
+  const fotoAutorAvaliacao =
+    usuarioAtual && usuarioAtual.id === avaliacao.usuarioId
+      ? usuarioAtual.fotoUrl ?? avaliacao.usuario.fotoUrl
+      : avaliacao.usuario.fotoUrl;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F2E6]">
       {/* SEÇÃO SUPERIOR PRETA: Avaliação Principal */}
       <section className="w-full bg-black text-white px-6 md:px-16 pt-6 pb-14">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-end h-6 mb-2">
-            {ehDonoDaAvaliacao && (
-              <button
-                type="button"
-                onClick={() => setModalAvaliacaoAberto(true)}
-                aria-label="Editar avaliação"
-                title="Editar avaliação"
-                className="text-white hover:text-[#c4f000] transition-colors cursor-pointer"
-              >
-                <Pencil size={20} />
-              </button>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
             <div className="flex items-center gap-4">
               <button
                 type="button"
@@ -137,14 +192,12 @@ export default function TelaComentariosAvaliacao({
                 <ChevronLeft size={28} strokeWidth={2} />
               </button>
 
-              <div className="w-14 h-14 rounded-full overflow-hidden bg-zinc-800 relative shrink-0">
-                <Image
-                  src={avaliacao.usuario.fotoUrl || '/avatar-placeholder.png'}
-                  alt={avaliacao.usuario.nome}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              <AvatarUsuario
+                nome={avaliacao.usuario.nome}
+                fotoUrl={fotoAutorAvaliacao}
+                tamanhoClasse="w-14 h-14"
+                textoClasse="text-xl"
+              />
 
               <div className="flex items-baseline gap-2.5">
                 <h1 className="text-2xl font-medium tracking-tight">
@@ -182,6 +235,10 @@ export default function TelaComentariosAvaliacao({
       {/* SEÇÃO INFERIOR CREME: Thread de Comentários e Barra de Gatilho */}
       <section className="flex-1 w-full px-6 md:px-16 py-10 flex flex-col justify-between max-w-6xl mx-auto">
         <div className="pl-4 md:pl-12">
+          {erroLista && (
+            <p className="mb-4 text-sm text-red-600">{erroLista}</p>
+          )}
+
           {carregando ? (
             <p className="text-zinc-500 text-sm">Carregando comentários...</p>
           ) : comentarios.length === 0 ? (
@@ -192,22 +249,31 @@ export default function TelaComentariosAvaliacao({
             <div className="border-l border-zinc-800 pl-8 flex flex-col gap-6">
               {comentarios.map((item) => {
                 const ehDonoDaLoja = Boolean(
-                  donoDaLojaId && item.usuarioId === donoDaLojaId
+                  idDonoLoja && item.usuarioId === idDonoLoja
                 );
                 const ehDonoDoComentario = Boolean(
-                  idUsuarioAtual && item.usuarioId === idUsuarioAtual
+                  usuarioAtual && item.usuarioId === usuarioAtual.id
                 );
+                const fotoAutorComentario =
+                  usuarioAtual && usuarioAtual.id === item.usuarioId
+                    ? usuarioAtual.fotoUrl ?? item.usuario.fotoUrl
+                    : item.usuario.fotoUrl;
 
                 return (
-                  <div key={item.id} className="flex items-start gap-3.5">
-                    <div className="w-11 h-11 rounded-full overflow-hidden bg-zinc-300 relative shrink-0 mt-0.5">
-                      <Image
-                        src={item.usuario.fotoUrl || '/avatar-placeholder.png'}
-                        alt={item.usuario.nome}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+                  <div
+                    key={item.id}
+                    className={`flex items-start gap-3.5 rounded-xl transition-colors ${
+                      comentarioDestacadoId === item.id
+                        ? 'bg-[#6338F6]/10 p-3 -ml-3'
+                        : ''
+                    }`}
+                  >
+                    <AvatarUsuario
+                      nome={item.usuario.nome}
+                      fotoUrl={fotoAutorComentario}
+                      tamanhoClasse="w-11 h-11 mt-0.5"
+                      textoClasse="text-base"
+                    />
 
                     <div className="flex-1">
                       <div className="flex items-center justify-between max-w-2xl">
@@ -223,7 +289,7 @@ export default function TelaComentariosAvaliacao({
 
                           {ehDonoDaLoja && (
                             <span className="text-[11px] font-medium text-[#7c3aed] leading-tight mt-0.5">
-                              dona da loja
+                              dono da loja
                             </span>
                           )}
                         </div>

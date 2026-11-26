@@ -35,6 +35,11 @@ export type NovaLoja = {
     banner: File | null;
 };
 
+export async function minhasLojas() {
+    const resposta = await api.get<Loja[]>("/loja/minhas");
+    return resposta.data;
+}
+
 // vai como formdata porque leva as imagens junto
 export async function criarLoja(dados: NovaLoja) {
     const formulario = new FormData();

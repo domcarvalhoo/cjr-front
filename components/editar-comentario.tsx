@@ -2,23 +2,14 @@
 
 import { useState, useEffect, SubmitEvent } from 'react';
 import { X } from 'lucide-react';
-// import { api } from '@/lib/api';
+import { mensagemDeErro } from '@/lib/erro';
+import {
+  editarComentario,
+  type Comentario,
+  type UsuarioComentario,
+} from '@/lib/comentarios';
 
-export interface UsuarioResumo {
-  id: string;
-  nome: string;
-  nomeUsuario: string;
-  fotoUrl: string | null;
-}
-
-export interface Comentario {
-  id: string;
-  texto: string;
-  criadoEm: string;
-  atualizadoEm: string;
-  usuarioId: string;
-  usuario: UsuarioResumo;
-}
+export type { Comentario, UsuarioComentario as UsuarioResumo };
 
 interface ModalEditarComentarioProps {
   comentario: Comentario | null;
@@ -33,10 +24,12 @@ export default function ModalEditarComentario({
 }: ModalEditarComentarioProps) {
   const [texto, setTexto] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
     if (comentario) {
       setTexto(comentario.texto);
+      setErro('');
     }
   }, [comentario]);
 
@@ -47,15 +40,17 @@ export default function ModalEditarComentario({
     if (!comentario || !texto.trim() || salvando) return;
 
     setSalvando(true);
+    setErro('');
 
-    onSuccess({
-      ...comentario,
-      texto: texto.trim(),
-      atualizadoEm: new Date().toISOString(),
-    });
-
-    setSalvando(false);
-    onClose();
+    try {
+      const atualizado = await editarComentario(comentario.id, texto.trim());
+      onSuccess(atualizado);
+      onClose();
+    } catch (err) {
+      setErro(mensagemDeErro(err, 'Não foi possível atualizar o comentário.'));
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
@@ -78,6 +73,10 @@ export default function ModalEditarComentario({
             placeholder="Comentário"
             className="w-full h-72 bg-white rounded-[24px] p-7 text-base text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#6338F6]/40 resize-none"
           />
+
+          {erro && (
+            <p className="mt-4 text-sm text-red-600 text-center">{erro}</p>
+          )}
 
           <button
             type="submit"
