@@ -5,10 +5,8 @@ import { api } from "./api";
 export type Loja = {
     id: number;
     nome: string;
-    // endereco da loja, ex.: "casa-do-cafe"
     slug: string;
     descricao: string | null;
-    // caminhos das imagens no back, ex.: "/uploads/lojas/<arquivo>.png"
     fotoUrl: string | null;
     logoUrl: string | null;
     bannerUrl: string | null;
@@ -34,6 +32,12 @@ export type NovaLoja = {
     logo: File | null;
     banner: File | null;
 };
+
+// todas as lojas ativas do banco (tela /lojas)
+export async function buscarLojas() {
+    const resposta = await api.get<Loja[]>("/loja");
+    return resposta.data;
+}
 
 export async function minhasLojas() {
     const resposta = await api.get<Loja[]>("/loja/minhas");
@@ -64,4 +68,47 @@ export async function categoriasDaLoja() {
     return resposta.data
         .filter((categoria) => !categoria.paiId && categoria.ativa)
         .map(({ id, nome, slug }) => ({ id, nome, slug }));
+}
+
+// busca sem acento e sem maiuscula
+function semAcento(texto: string) {
+    return texto
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
+type FiltrosLoja = {
+    busca: string;
+    categoriaSlug: string;
+};
+
+// aplicando busca por texto e filtro por categoria nas lojas
+export function filtrarLojas(lojas: Loja[], filtros: FiltrosLoja) {
+    const termo = semAcento(filtros.busca);
+    const catAlvo = semAcento(filtros.categoriaSlug);
+
+    return lojas.filter((loja) => {
+        if (catAlvo) {
+            const slugLoja = semAcento(loja.categoria?.slug ?? "");
+            const nomeCatLoja = semAcento(loja.categoria?.nome ?? "");
+            if (slugLoja !== catAlvo && nomeCatLoja !== catAlvo) return false;
+        }
+
+        if (termo) {
+            const nome = semAcento(loja.nome);
+            const categoria = semAcento(loja.categoria?.nome ?? "");
+            const descricao = semAcento(loja.descricao ?? "");
+            if (
+                !nome.includes(termo) &&
+                !categoria.includes(termo) &&
+                !descricao.includes(termo)
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    });
 }

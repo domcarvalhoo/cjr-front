@@ -39,12 +39,24 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
       </div>
 
       <div className="flex items-center gap-8">
-        <button className="text-white hover:text-[#c4f000] transition-colors duration-200 cursor-pointer">
+        <Link
+          href="/produtos"
+          aria-label="Produtos"
+          className={`transition-colors duration-200 cursor-pointer ${
+            pathname === '/produtos' ? 'text-[#c4f000]' : 'text-white hover:text-[#c4f000]'
+          }`}
+        >
           <ShoppingBag strokeWidth={2.5} className="w-6 h-6" />
-        </button>
-        <button className="text-white hover:text-[#c4f000] transition-colors duration-200 cursor-pointer">
+        </Link>
+        <Link
+          href="/lojas"
+          aria-label="Lojas"
+          className={`transition-colors duration-200 cursor-pointer ${
+            pathname.startsWith('/lojas') ? 'text-[#c4f000]' : 'text-white hover:text-[#c4f000]'
+          }`}
+        >
           <Store strokeWidth={2.5} className="w-6 h-6" />
-        </button>
+        </Link>
 
         {isLoggedIn ? (
           <>

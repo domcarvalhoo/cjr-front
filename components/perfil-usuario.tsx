@@ -14,7 +14,7 @@ import ModalCriarLoja from "@/components/modal-criar-loja";
 import ModalEditarPerfil from "@/components/modal-editar-perfil";
 import CardProduto from "@/app/componentes/card-produto";
 import { produtosDaPessoa } from "@/lib/perfil";
-import type { ProdutoCard } from "@/lib/produtos";
+import { formatarPreco, produtosDasMinhasLojas, resolverUrlImagem, type ProdutoCard } from "@/lib/produtos";
 
 export type UsuarioPerfil = {
     id: number;
@@ -278,11 +278,67 @@ export default function PerfilUsuario({ usuario: usuarioInicial, ehDono }: Perfi
                             <p className="mt-6 text-xl font-light text-cinza">Nenhum produto por aqui ainda.</p>
                         ) : (
                             <CarrosselHorizontal>
-                                {produtos.map((produto) => (
-                                    <div key={produto.id} className="w-[228px] shrink-0">
-                                        <CardProduto produto={produto} />
-                                    </div>
-                                ))}
+                                {produtos.map((produto) => {
+                                    const fotoProduto = resolverUrlImagem(produto.imagemUrl);
+                                    const logoLoja = resolverUrlImagem(produto.lojaLogoUrl);
+
+                                    return (
+                                        <Link
+                                            key={produto.id}
+                                            href={`/produto/${produto.id}`}
+                                            draggable={false}
+                                            className="bg-white min-w-[250px] w-[250px] h-[300px] shrink-0 rounded-3xl shadow-sm relative overflow-hidden flex flex-col items-center justify-between p-5 cursor-pointer text-left transition-transform hover:scale-[1.02] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                                        >
+                                            <div className="absolute top-4 right-4 w-16 h-16 rounded-full overflow-hidden bg-[#FAF6F5] shadow-sm flex items-center justify-center z-10">
+                                                {logoLoja ? (
+                                                    <Image
+                                                        src={logoLoja}
+                                                        alt={produto.lojaNome || "Selo da loja"}
+                                                        fill
+                                                        unoptimized
+                                                        draggable={false}
+                                                        sizes="64px"
+                                                        className="object-cover"
+                                                    />
+                                                ) : (
+                                                    <Store className="h-7 w-7 text-roxo/60" />
+                                                )}
+                                            </div>
+
+                                            <div className="relative w-36 h-36 mt-2 rounded-xl overflow-hidden flex items-center justify-center bg-gray-50">
+                                                {fotoProduto ? (
+                                                    <Image
+                                                        src={fotoProduto}
+                                                        alt={produto.titulo}
+                                                        fill
+                                                        unoptimized
+                                                        draggable={false}
+                                                        sizes="144px"
+                                                        className="object-contain"
+                                                    />
+                                                ) : (
+                                                    <span className="text-gray-400 text-xs">Imagem</span>
+                                                )}
+                                            </div>
+
+                                            <div className="w-full flex flex-col items-start">
+                                                <h3 className="text-xl font-bold text-black truncate w-full">
+                                                    {produto.titulo}
+                                                </h3>
+                                                <p className="text-lg font-bold text-black mt-0.5">
+                                                    {formatarPreco(produto.preco)}
+                                                </p>
+                                                <span
+                                                    className={`text-sm font-bold uppercase mt-1 ${
+                                                        produto.disponivel ? "text-[#c4f000]" : "text-[#A31621]"
+                                                    }`}
+                                                >
+                                                    {produto.disponivel ? "DISPONÍVEL" : "INDISPONÍVEL"}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
                             </CarrosselHorizontal>
                         )}
                     </section>
@@ -445,4 +501,4 @@ export default function PerfilUsuario({ usuario: usuarioInicial, ehDono }: Perfi
             )}
         </div>
     );
-}
+}

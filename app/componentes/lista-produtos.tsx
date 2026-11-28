@@ -128,14 +128,17 @@ export default function ListaProdutos({ categoria }: { categoria: CategoriaTela 
         </div>
       </div>
 
-      {/* grade de produtos e mensagens */}
       <div className="mt-6" aria-live="polite">
         {carregando && <p className="py-16 text-center text-cinza">Carregando produtos...</p>}
 
         {!carregando && erro && <p className="py-16 text-center text-vermelho">{erro}</p>}
 
         {!carregando && !erro && encontrados.length === 0 && (
-          <p className="py-16 text-center text-cinza">Nenhum produto encontrado.</p>
+          <p className="py-16 text-center text-cinza">
+            {busca.trim() || subcategoria
+              ? "Nenhum produto encontrado com esses filtros."
+              : `Nenhum produto registrado na categoria ${categoria.nome} ainda.`}
+          </p>
         )}
 
         {daPagina.length > 0 && (
@@ -150,9 +153,11 @@ export default function ListaProdutos({ categoria }: { categoria: CategoriaTela 
       </div>
 
       {/* paginação */}
-      <div className="mt-10">
-        <Paginacao atual={paginaAtual} total={totalPaginas} aoMudar={irParaPagina} />
-      </div>
+      {encontrados.length > 0 && (
+        <div className="mt-10">
+          <Paginacao atual={paginaAtual} total={totalPaginas} aoMudar={irParaPagina} />
+        </div>
+      )}
     </section>
   );
 }
