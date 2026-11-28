@@ -34,4 +34,48 @@ export async function avaliacoesDoUsuario(usuarioId: number): Promise<AvaliacaoP
   return [...deLojas, ...deProdutos].sort(
     (a, b) => new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime()
   );
-}
+}
+
+export async function criarAvaliacaoLoja(dados: {
+  usuarioId: number;
+  lojaId: number;
+  nota: number;
+  comentario?: string;
+}) {
+  const resposta = await api.post("/avaliacoes/lojas", dados);
+  return resposta.data;
+}
+
+export async function editarAvaliacaoLoja(
+  id: number,
+  dados: { nota?: number; comentario?: string }
+) {
+  const resposta = await api.patch(`/avaliacoes/lojas/${id}`, dados);
+  return resposta.data;
+}
+
+export async function excluirAvaliacaoLoja(id: number) {
+  await api.delete(`/avaliacoes/lojas/${id}`);
+}
+
+export async function criarAvaliacaoProduto(dados: {
+  usuarioId: number;
+  produtoId: number;
+  nota: number;
+  comentario?: string;
+}) {
+  const resposta = await api.post("/avaliacoes/produtos", dados);
+  return resposta.data;
+}
+
+export async function editarAvaliacaoProduto(
+  id: number,
+  dados: { nota?: number; comentario?: string }
+) {
+  const resposta = await api.patch(`/avaliacoes/produtos/${id}`, dados);
+  return resposta.data;
+}
+
+export async function excluirAvaliacaoProduto(id: string | number) {
+  await api.delete(`/avaliacoes/produtos/${id}`);
+}
