@@ -16,6 +16,7 @@ import {
 
 import ModalCriarComentario from './criar-comentario';
 import ModalEditarComentario from './editar-comentario';
+import ModalEditarAvaliacao from './modal-editar-avaliacao';
 
 export interface Avaliacao {
   id: number;
@@ -25,6 +26,7 @@ export interface Avaliacao {
   usuarioId: number;
   usuario: UsuarioComentario;
   loja?: {
+    nome?: string;
     donoId?: number | null;
   };
 }
@@ -88,19 +90,22 @@ function AvatarUsuario({
 }
 
 export default function TelaComentariosAvaliacao({
-  avaliacao,
+  avaliacao: avaliacaoInicial,
   usuarioLogadoId: usuarioLogadoProp,
   donoDaLojaId,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const comentarioIdNaUrl = Number(searchParams.get('comentarioId')) || null;
+  const comentarioIdNaUrl = searchParams.get('comentarioId');
 
+  const [avaliacao, setAvaliacao] = useState<Avaliacao>(avaliacaoInicial);
   const [usuarioAtual, setUsuarioAtual] = useState<{
     id: number;
     fotoUrl: string | null;
   } | null>(
-    usuarioLogadoProp ? { id: usuarioLogadoProp, fotoUrl: null } : null
+    usuarioLogadoProp !== undefined
+      ? { id: usuarioLogadoProp, fotoUrl: null }
+      : null
   );
 
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
@@ -112,16 +117,20 @@ export default function TelaComentariosAvaliacao({
 
   const [modalCriarAberto, setModalCriarAberto] = useState(false);
   const [comentarioEmEdicao, setComentarioEmEdicao] = useState<Comentario | null>(null);
+  const [modalEditarAvaliacaoAberto, setModalEditarAvaliacaoAberto] = useState(false);
 
-  // 1. Resolve o ID do dono da loja (via prop ou diretamente do objeto avaliacao)
-  const idDonoLoja = donoDaLojaId ?? avaliacao.loja?.donoId;
+  const idDonoLoja = donoDaLojaId ?? avaliacao.loja?.donoId ?? undefined;
+
+  useEffect(() => {
+    setAvaliacao(avaliacaoInicial);
+  }, [avaliacaoInicial]);
 
   useEffect(() => {
     api
       .get<{ id: number; fotoUrl: string | null }>('/auth/me')
       .then((res) => setUsuarioAtual({ id: res.data.id, fotoUrl: res.data.fotoUrl }))
       .catch(() => {
-        if (usuarioLogadoProp) {
+        if (usuarioLogadoProp !== undefined) {
           setUsuarioAtual({ id: usuarioLogadoProp, fotoUrl: null });
         } else {
           setUsuarioAtual(null);
@@ -142,12 +151,13 @@ export default function TelaComentariosAvaliacao({
   }, [avaliacao.id]);
 
   useEffect(() => {
-    if (!comentarioIdNaUrl) {
+    const idNumerico = comentarioIdNaUrl ? Number(comentarioIdNaUrl) : NaN;
+    if (!Number.isInteger(idNumerico) || idNumerico <= 0) {
       setComentarioDestacadoId(null);
       return;
     }
 
-    buscarComentarioPorId(comentarioIdNaUrl)
+    buscarComentarioPorId(idNumerico)
       .then((encontrado) => setComentarioDestacadoId(encontrado.id))
       .catch(() => setComentarioDestacadoId(null));
   }, [comentarioIdNaUrl]);
@@ -171,9 +181,13 @@ export default function TelaComentariosAvaliacao({
     }
   }
 
-  const fotoAutorAvaliacao =
+  const ehDonoDaAvaliacao = Boolean(
     usuarioAtual && usuarioAtual.id === avaliacao.usuarioId
-      ? usuarioAtual.fotoUrl ?? avaliacao.usuario.fotoUrl
+  );
+
+  const fotoAutorAvaliacao =
+    ehDonoDaAvaliacao && usuarioAtual?.fotoUrl
+      ? usuarioAtual.fotoUrl
       : avaliacao.usuario.fotoUrl;
 
   return (
@@ -181,7 +195,21 @@ export default function TelaComentariosAvaliacao({
       {/* SEÇÃO SUPERIOR PRETA: Avaliação Principal */}
       <section className="w-full bg-black text-white px-6 md:px-16 pt-6 pb-14">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
+          <div className="flex justify-end h-6 mb-2">
+            {ehDonoDaAvaliacao && (
+              <button
+                type="button"
+                onClick={() => setModalEditarAvaliacaoAberto(true)}
+                aria-label="Editar avaliação"
+                title="Editar avaliação"
+                className="text-white hover:text-[#c4f000] transition-colors cursor-pointer"
+              >
+                <Pencil size={20} />
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button
                 type="button"
@@ -249,14 +277,14 @@ export default function TelaComentariosAvaliacao({
             <div className="border-l border-zinc-800 pl-8 flex flex-col gap-6">
               {comentarios.map((item) => {
                 const ehDonoDaLoja = Boolean(
-                  idDonoLoja && item.usuarioId === idDonoLoja
+                  idDonoLoja !== undefined && item.usuarioId === idDonoLoja
                 );
                 const ehDonoDoComentario = Boolean(
                   usuarioAtual && item.usuarioId === usuarioAtual.id
                 );
                 const fotoAutorComentario =
-                  usuarioAtual && usuarioAtual.id === item.usuarioId
-                    ? usuarioAtual.fotoUrl ?? item.usuario.fotoUrl
+                  ehDonoDoComentario && usuarioAtual?.fotoUrl
+                    ? usuarioAtual.fotoUrl
                     : item.usuario.fotoUrl;
 
                 return (
@@ -329,7 +357,6 @@ export default function TelaComentariosAvaliacao({
           )}
         </div>
 
-        {/* Barra Inferior: Clicar abre o ModalCriarComentario */}
         <div className="mt-14 w-full max-w-4xl mx-auto">
           <button
             type="button"
@@ -365,6 +392,20 @@ export default function TelaComentariosAvaliacao({
           )
         }
       />
+
+      <ModalEditarAvaliacao
+        aberto={modalEditarAvaliacaoAberto}
+        avaliacao={avaliacao}
+        onClose={() => setModalEditarAvaliacaoAberto(false)}
+        onSuccess={({ nota, comentario }) =>
+          setAvaliacao((prev) => ({
+            ...prev,
+            nota,
+            comentario,
+          }))
+        }
+        onDelete={() => router.back()}
+      />
     </div>
   );
-}
+}
